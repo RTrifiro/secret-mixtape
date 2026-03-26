@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Secret Mixtape</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Mono:ital,wght@0,300;0,400;1,300&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:       #0a0806;
+      --bg2:      #100e0b;
+      --bg3:      #161210;
+      --cream:    #e8e0d0;
+      --tan:      #c4b49a;
+      --rust:     #c4622d;
+      --gold:     #c9a84c;
+      --gold-dim: #7a5e20;
+      --tape:     #1e1a14;
+      --border:   rgba(196,180,154,0.15);
+      --border-b: rgba(196,180,154,0.35);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--cream); font-family: 'Cormorant Garamond', Georgia, serif; font-size: 18px; line-height: 1.7; overflow-x: hidden; }
+    body::before { content:''; position:fixed; inset:0; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E"); opacity:0.04; pointer-events:none; z-index:1000; }
+
+    /* NAV */
+    nav { position:fixed; top:0; left:0; right:0; z-index:200; padding:1.2rem 2rem; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid transparent; transition:border-color 0.4s, background 0.4s; }
+    @media(min-width:768px){ nav { padding:1.2rem 3rem; } }
+    nav.scrolled { background:rgba(10,8,6,0.92); border-color:var(--border); backdrop-filter:blur(8px); }
+    .nav-logo { font-family:'DM Mono',monospace; font-size:0.75rem; letter-spacing:0.18em; text-transform:uppercase; color:var(--tan); text-decoration:none; z-index:210; position:relative; }
+
+    /* Desktop links */
+    .nav-links { display:none; gap:2.5rem; list-style:none; }
+    @media(min-width:768px){ .nav-links { display:flex; } }
+    .nav-links a { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--tan); text-decoration:none; opacity:0.7; transition:opacity 0.2s,color 0.2s; }
+    .nav-links a:hover { opacity:1; color:var(--cream); }
+
+    /* Hamburger button */
+    .nav-burger { display:flex; flex-direction:column; justify-content:center; gap:5px; width:32px; height:32px; background:none; border:none; cursor:pointer; padding:4px; z-index:210; position:relative; }
+    @media(min-width:768px){ .nav-burger { display:none; } }
+    .nav-burger span { display:block; width:100%; height:1px; background:var(--tan); transition:transform 0.35s ease, opacity 0.25s ease, width 0.3s ease; transform-origin:center; }
+    .nav-burger span:nth-child(2) { width:70%; margin-left:auto; }
+    .nav-burger.active span:nth-child(1) { transform:translateY(6px) rotate(45deg); }
+    .nav-burger.active span:nth-child(2) { opacity:0; transform:scaleX(0); }
+    .nav-burger.active span:nth-child(3) { transform:translateY(-6px) rotate(-45deg); width:100%; }
+
+    /* Mobile drawer */
+    .nav-drawer { position:fixed; inset:0; z-index:205; background:rgba(10,8,6,0.97); backdrop-filter:blur(10px); display:flex; flex-direction:column; justify-content:center; align-items:center; gap:0; pointer-events:none; opacity:0; transition:opacity 0.35s ease; }
+    .nav-drawer.open { opacity:1; pointer-events:all; }
+    @media(min-width:768px){ .nav-drawer { display:none !important; } }
+    .nav-drawer ul { list-style:none; text-align:center; display:flex; flex-direction:column; gap:0; width:100%; }
+    .nav-drawer ul li { border-bottom:1px solid var(--border); }
+    .nav-drawer ul li:first-child { border-top:1px solid var(--border); }
+    .nav-drawer ul li a { display:block; font-family:'DM Mono',monospace; font-size:0.75rem; letter-spacing:0.25em; text-transform:uppercase; color:var(--tan); text-decoration:none; padding:1.6rem 2rem; transition:color 0.2s, background 0.2s; opacity:0; transform:translateY(10px); transition:opacity 0.3s ease, transform 0.3s ease, color 0.2s, background 0.2s; }
+    .nav-drawer.open ul li a { opacity:1; transform:none; }
+    .nav-drawer.open ul li:nth-child(1) a { transition-delay:0.05s; }
+    .nav-drawer.open ul li:nth-child(2) a { transition-delay:0.1s; }
+    .nav-drawer.open ul li:nth-child(3) a { transition-delay:0.15s; }
+    .nav-drawer.open ul li:nth-child(4) a { transition-delay:0.2s; }
+    .nav-drawer ul li a:hover { color:var(--cream); background:var(--bg2); }
+    .nav-drawer-cta { margin-top:2.5rem; opacity:0; transform:translateY(10px); transition:opacity 0.3s ease 0.25s, transform 0.3s ease 0.25s; }
+    .nav-drawer.open .nav-drawer-cta { opacity:1; transform:none; }
+
+    /* HERO */
+    .hero { min-height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:8rem 2rem 6rem; position:relative; overflow:hidden; }
+    .hero::before,.hero::after { content:''; position:absolute; border-radius:50%; border:1px solid var(--border); }
+    .hero::before { width:420px; height:420px; top:50%; left:8%; transform:translateY(-50%); animation:reelSpin 40s linear infinite; }
+    .hero::after  { width:420px; height:420px; top:50%; right:8%; transform:translateY(-50%); animation:reelSpin 35s linear infinite reverse; }
+    @keyframes reelSpin { from{transform:translateY(-50%) rotate(0deg);} to{transform:translateY(-50%) rotate(360deg);} }
+    .ri { position:absolute; border-radius:50%; border:1px solid var(--border); pointer-events:none; }
+    .ri.l1 { width:280px; height:280px; top:50%; left:8%; transform:translate(-50%,-50%); margin-left:210px; animation:reelSpin 40s linear infinite reverse; }
+    .ri.l2 { width:120px; height:120px; top:50%; left:8%; transform:translate(-50%,-50%); margin-left:210px; background:var(--bg); border-color:var(--border-b); }
+    .ri.r1 { width:280px; height:280px; top:50%; right:8%; transform:translate(50%,-50%); margin-right:210px; animation:reelSpin 35s linear infinite; }
+    .ri.r2 { width:120px; height:120px; top:50%; right:8%; transform:translate(50%,-50%); margin-right:210px; background:var(--bg); border-color:var(--border-b); }
+    .hero-eyebrow { font-family:'DM Mono',monospace; font-size:0.68rem; letter-spacing:0.25em; text-transform:uppercase; color:var(--rust); margin-bottom:1.8rem; opacity:0; animation:fadeUp 0.8s ease 0.2s forwards; }
+    h1 { font-family:'Playfair Display',serif; font-size:clamp(3.5rem,9vw,8rem); font-weight:900; line-height:0.95; letter-spacing:-0.02em; margin-bottom:0.15em; opacity:0; animation:fadeUp 0.9s ease 0.4s forwards; }
+    h1 em { font-style:italic; color:var(--gold); }
+    .hero-sub { font-style:italic; font-size:clamp(1.1rem,2.5vw,1.5rem); color:var(--tan); max-width:480px; margin:1.8rem auto 3rem; opacity:0; animation:fadeUp 0.9s ease 0.6s forwards; }
+    .hero-ctas { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; opacity:0; animation:fadeUp 0.9s ease 0.8s forwards; }
+    .hero-tape-line { position:absolute; bottom:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--border-b),transparent); }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:none;} }
+
+    /* BUTTONS */
+    .btn { font-family:'DM Mono',monospace; font-size:0.72rem; letter-spacing:0.18em; text-transform:uppercase; text-decoration:none; padding:0.9rem 2.2rem; border:1px solid; transition:all 0.25s ease; cursor:pointer; display:inline-block; }
+    .btn-primary  { background:var(--rust); border-color:var(--rust); color:var(--cream); }
+    .btn-primary:hover  { background:transparent; color:var(--rust); }
+    .btn-secondary { background:transparent; border-color:var(--border-b); color:var(--tan); }
+    .btn-secondary:hover { border-color:var(--tan); color:var(--cream); }
+
+    /* TAPE STRIP */
+    .tape-strip { background:var(--tape); border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:0.7rem 0; overflow:hidden; white-space:nowrap; }
+    .tsi { display:inline-block; animation:ticker 30s linear infinite; font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold-dim); }
+    .tsi span { margin:0 2.5rem; }
+    .tsi .dot { color:var(--rust); margin:0 1rem; }
+    @keyframes ticker { from{transform:translateX(0);} to{transform:translateX(-50%);} }
+
+    /* SECTIONS */
+    .si { max-width:860px; margin:0 auto; padding:7rem 2rem; }
+    .slabel { font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:0.25em; text-transform:uppercase; color:var(--rust); margin-bottom:1.2rem; display:flex; align-items:center; gap:1rem; }
+    .slabel::after { content:''; flex:1; height:1px; background:var(--border); max-width:80px; }
+    h2 { font-family:'Playfair Display',serif; font-size:clamp(2rem,5vw,3.2rem); font-weight:700; line-height:1.15; margin-bottom:1.5rem; }
+    h2 em { font-style:italic; color:var(--gold); }
+    .lead { font-size:1.2rem; color:var(--tan); font-style:italic; max-width:600px; margin-bottom:2rem; }
+    p { color:var(--tan); margin-bottom:1rem; }
+    p strong { color:var(--cream); font-weight:400; }
+
+    /* STEPS */
+    .steps { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1.5px; margin-top:3.5rem; border:1.5px solid var(--border); }
+    .step { padding:2.2rem 1.8rem; background:var(--bg2); border:1px solid var(--border); transition:background 0.3s; }
+    .step:hover { background:var(--bg3); }
+    .step-num { font-family:'Playfair Display',serif; font-size:3.5rem; font-weight:900; font-style:italic; color:var(--border); line-height:1; margin-bottom:0.8rem; transition:color 0.3s; }
+    .step:hover .step-num { color:var(--gold-dim); }
+    .step-title { font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:700; color:var(--cream); margin-bottom:0.5rem; }
+    .step p { font-size:0.95rem; line-height:1.6; margin:0; }
+
+    /* ABOUT */
+    #about { background:var(--bg2); border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
+    .about-grid { display:grid; grid-template-columns:1fr 1fr; gap:4rem; align-items:center; }
+    @media(max-width:700px){ .about-grid{grid-template-columns:1fr;} .cass-wrap{display:none;} }
+    .cass-wrap { display:flex; justify-content:center; }
+    .cassette { width:260px; height:160px; background:#1a1510; border:1px solid var(--border-b); border-radius:6px; position:relative; box-shadow:0 0 60px rgba(0,0,0,0.8); }
+    .cassette::before { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:180px; height:80px; background:var(--bg); border:1px solid var(--border); border-radius:3px; }
+    .creel { position:absolute; top:50%; width:44px; height:44px; border:1px solid var(--border-b); border-radius:50%; transform:translateY(-50%); }
+    .creel::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:14px; height:14px; background:var(--border-b); border-radius:50%; }
+    .creel.l { left:44px;  animation:reelSpin 4s linear infinite; }
+    .creel.r { right:44px; animation:reelSpin 4s linear infinite reverse; }
+    .clabel { position:absolute; bottom:18px; left:50%; transform:translateX(-50%); font-family:'DM Mono',monospace; font-size:0.55rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold-dim); white-space:nowrap; }
+
+    /* FAQ */
+    #faq { background:var(--bg); }
+    .faq-item { border-bottom:1px solid var(--border); }
+    .faq-q { width:100%; background:none; border:none; padding:1.5rem 0; display:flex; justify-content:space-between; align-items:center; cursor:pointer; text-align:left; gap:1rem; }
+    .faq-qt { font-family:'Playfair Display',serif; font-size:1.1rem; color:var(--cream); font-style:italic; }
+    .faq-ic { font-family:'DM Mono',monospace; font-size:1.1rem; color:var(--rust); flex-shrink:0; transition:transform 0.3s; line-height:1; }
+    .faq-item.open .faq-ic { transform:rotate(45deg); }
+    .faq-a { max-height:0; overflow:hidden; transition:max-height 0.4s ease, padding 0.3s ease; }
+    .faq-item.open .faq-a { max-height:300px; padding-bottom:1.5rem; }
+    .faq-a p { font-size:1rem; margin:0; }
+
+    /* SIGNUP */
+    #signup { background:var(--bg2); border-top:1px solid var(--border); text-align:center; }
+    #signup .si { padding:6rem 2rem; }
+    #signup .hero-ctas { opacity:1; animation:none; }
+
+    /* FOOTER */
+    footer { background:var(--bg); border-top:1px solid var(--border); padding:2.5rem 3rem; display:flex; justify-content:space-between; align-items:center; font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:0.12em; color:var(--gold-dim); text-transform:uppercase; flex-wrap:wrap; gap:1rem; }
+
+    /* REVEAL */
+    .reveal { opacity:0; transform:translateY(24px); transition:opacity 0.7s ease,transform 0.7s ease; }
+    .reveal.visible { opacity:1; transform:none; }
+
+    /* MODAL */
+    #modal {
+      position:fixed; inset:0; z-index:500;
+      background:rgba(5,4,3,0.93);
+      backdrop-filter:blur(6px);
+      display:flex; justify-content:center; align-items:flex-start;
+      overflow-y:auto; padding:3rem 1.5rem;
+      visibility:hidden; opacity:0;
+      transition:opacity 0.3s ease, visibility 0.3s ease;
+    }
+    #modal.open { visibility:visible; opacity:1; }
+    .mbox {
+      background:var(--bg2); border:1px solid var(--border-b);
+      max-width:580px; width:100%; margin:auto;
+      padding:3rem 2.5rem; position:relative;
+      transform:translateY(20px); transition:transform 0.3s ease;
+    }
+    #modal.open .mbox { transform:translateY(0); }
+    .mclose { position:absolute; top:1.2rem; right:1.5rem; background:none; border:none; color:var(--tan); font-family:'DM Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; cursor:pointer; opacity:0.6; transition:opacity 0.2s; }
+    .mclose:hover { opacity:1; }
+    .mlabel { font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:0.25em; text-transform:uppercase; color:var(--rust); margin-bottom:1rem; display:block; }
+    .mtitle { font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:700; line-height:1.2; margin-bottom:0.5rem; color:var(--cream); }
+    .mtitle em { font-style:italic; color:var(--gold); }
+    .msub { color:var(--tan); font-style:italic; font-size:1rem; margin-bottom:2rem; }
+    .ffields { display:flex; flex-direction:column; gap:1.2rem; margin-bottom:2rem; }
+    .flabel { font-family:'DM Mono',monospace; font-size:0.62rem; letter-spacing:0.18em; text-transform:uppercase; color:var(--tan); display:block; margin-bottom:0.4rem; }
+    .finput, .ftarea { width:100%; background:var(--bg); border:1px solid var(--border-b); color:var(--cream); padding:0.75rem 1rem; font-family:'Cormorant Garamond',serif; font-size:1rem; outline:none; transition:border-color 0.2s; }
+    .finput:focus, .ftarea:focus { border-color:var(--tan); }
+    .ftarea { resize:vertical; }
+    .rgroup { display:flex; gap:1.5rem; flex-wrap:wrap; }
+    .rlabel { display:flex; align-items:center; gap:0.5rem; color:var(--cream); font-size:1rem; cursor:pointer; }
+    .rlabel input { accent-color:var(--rust); }
+    .qsec { border-top:1px solid var(--border); padding-top:1.8rem; margin-bottom:2rem; }
+    .qlabel { font-family:'DM Mono',monospace; font-size:0.62rem; letter-spacing:0.18em; text-transform:uppercase; color:var(--rust); margin-bottom:0.4rem; display:block; }
+    .qsub { color:var(--tan); font-style:italic; font-size:0.95rem; margin-bottom:1.5rem; display:block; }
+    #qloading { color:var(--tan); font-style:italic; font-size:0.95rem; text-align:center; padding:1.5rem 0; }
+    #qcontainer { flex-direction:column; gap:1.8rem; display:none; }
+    .qnum { font-family:'DM Mono',monospace; font-size:0.6rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--rust); display:block; margin-bottom:0.4rem; }
+    .qtext { font-family:'Playfair Display',serif; font-style:italic; font-size:1.1rem; color:var(--cream); margin-bottom:0.6rem; display:block; }
+    .bsubmit { width:100%; background:var(--rust); border:1px solid var(--rust); color:var(--cream); font-family:'DM Mono',monospace; font-size:0.72rem; letter-spacing:0.18em; text-transform:uppercase; padding:1rem; cursor:pointer; transition:background 0.25s,color 0.25s; }
+    .bsubmit:hover { background:transparent; color:var(--rust); }
+    #fmsg { margin-top:1rem; font-style:italic; font-size:0.9rem; text-align:center; color:var(--tan); min-height:1.4rem; display:block; }
+    #fmsg.err { color:var(--rust); }
+  </style>
+</head>
+<body>
+
+<nav id="nav">
+  <a class="nav-logo" href="#home">Secret Mixtape</a>
+  <ul class="nav-links">
+    <li><a href="#how-it-works">How It Works</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#faq">FAQ</a></li>
+    <li><a href="#signup">Sign Up</a></li>
+  </ul>
+  <button class="nav-burger" id="nav-burger" aria-label="Open menu" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- MOBILE DRAWER -->
+<div class="nav-drawer" id="nav-drawer">
+  <ul>
+    <li><a href="#how-it-works" class="drawer-link">How It Works</a></li>
+    <li><a href="#about" class="drawer-link">About</a></li>
+    <li><a href="#faq" class="drawer-link">FAQ</a></li>
+    <li><a href="#signup" class="drawer-link">Sign Up</a></li>
+  </ul>
+  <div class="nav-drawer-cta">
+    <a href="#" class="btn btn-primary listener-trigger">I want to be a Listener</a>
+  </div>
+</div>
+
+<section class="hero" id="home">
+  <div class="ri l1"></div><div class="ri l2"></div>
+  <div class="ri r1"></div><div class="ri r2"></div>
+  <p class="hero-eyebrow">A Maker is making you a mixtape</p>
+  <h1>Secret<br/><em>Mixtape</em></h1>
+  <p class="hero-sub">Real tapes. Real strangers. No algorithms. Just music, chosen for you by someone who doesn't know you yet.</p>
+  <div class="hero-ctas">
+    <a href="#" class="btn btn-primary listener-trigger">I want to be a Listener</a>
+    <a href="#" class="btn btn-secondary">I want to be a Maker</a>
+  </div>
+  <div class="hero-tape-line"></div>
+</section>
+
+<div class="tape-strip">
+  <div class="tsi">
+    <span>Cassette</span><span class="dot">&#10022;</span>
+    <span>Compact Disc</span><span class="dot">&#10022;</span>
+    <span>Handpicked Tracks</span><span class="dot">&#10022;</span>
+    <span>Sent by a Stranger</span><span class="dot">&#10022;</span>
+    <span>No Algorithm</span><span class="dot">&#10022;</span>
+    <span>Made With Intention</span><span class="dot">&#10022;</span>
+    <span>Side A / Side B</span><span class="dot">&#10022;</span>
+    <span>Rewind &amp; Repeat</span><span class="dot">&#10022;</span>
+    <span>Cassette</span><span class="dot">&#10022;</span>
+    <span>Compact Disc</span><span class="dot">&#10022;</span>
+    <span>Handpicked Tracks</span><span class="dot">&#10022;</span>
+    <span>Sent by a Stranger</span><span class="dot">&#10022;</span>
+    <span>No Algorithm</span><span class="dot">&#10022;</span>
+    <span>Made With Intention</span><span class="dot">&#10022;</span>
+    <span>Side A / Side B</span><span class="dot">&#10022;</span>
+    <span>Rewind &amp; Repeat</span><span class="dot">&#10022;</span>
+  </div>
+</div>
+
+<section id="how-it-works">
+  <div class="si">
+    <p class="slabel reveal">The Process</p>
+    <h2 class="reveal">How it <em>works</em></h2>
+    <p class="lead reveal">Simple by design. Mysterious by nature.</p>
+    <div class="steps">
+      <div class="step reveal">
+        <div class="step-num">01</div>
+        <div class="step-title">Sign up as a Listener</div>
+        <p>Give us your name, address, and email. Answer three questions &#8212; pulled at random just for you. About a mood, a memory, a moment. Then wait.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">02</div>
+        <div class="step-title">A Maker gets your answers</div>
+        <p>A Maker is matched with you, randomly. They&#8217;ll see your three answers &#8212; and nothing else. That&#8217;s their brief.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">03</div>
+        <div class="step-title">They make the tape</div>
+        <p>A real cassette or CD. Curated track by track, for you specifically. They cover postage. They seal it up. They send it.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">04</div>
+        <div class="step-title">It arrives in your mailbox</div>
+        <p>Press play. Someone, somewhere, thought about you while making this. That&#8217;s the whole thing.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="si">
+    <div class="about-grid">
+      <div>
+        <p class="slabel reveal">About</p>
+        <h2 class="reveal">Why <em>physical?</em><br/>Why strangers?</h2>
+        <p class="reveal">Streaming is endless. Playlists are disposable. A mixtape &#8212; a <strong>real</strong> one, something you can hold &#8212; is a commitment. Someone sat with a blank tape and made choices. Every song is a decision.</p>
+        <p class="reveal">And strangers, it turns out, can surprise you. They&#8217;re not trying to impress you or manage your opinion of them. They&#8217;re just listening to what you said, and responding with music.</p>
+        <p class="reveal">Secret Mixtape is free. No subscriptions. Makers cover their own costs because they want to &#8212; because making a mixtape for a stranger is its own reward. We just make the introduction.</p>
+      </div>
+      <div class="cass-wrap reveal">
+        <div class="cassette">
+          <div class="creel l"></div>
+          <div class="creel r"></div>
+          <div class="clabel">Side A &#8212; for you</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="si">
+    <p class="slabel reveal">Questions</p>
+    <h2 class="reveal">The <em>FAQ</em></h2>
+    <p class="lead reveal">Everything you&#8217;re probably wondering.</p>
+    <div class="faq-list">
+
+      <div class="faq-item reveal">
+        <button class="faq-q" onclick="toggleFaq(this)"><span class="faq-qt">Is this actually free?</span><span class="faq-ic">+</span></button>
+        <div class="faq-a"><p>Yes, completely. If you sign up as a Listener, it costs you nothing. If you sign up as a Maker, you cover the cost of the blank tape or CD and postage &#8212; that&#8217;s it. No subscriptions, no fees, no catch.</p></div>
+      </div>
+
+      <div class="faq-item reveal">
+        <button class="faq-q" onclick="toggleFaq(this)"><span class="faq-qt">Who will my address be shared with?</span><span class="faq-ic">+</span></button>
+        <div class="faq-a"><p>Only your matched Maker will see your mailing address. It&#8217;s not publicly visible, not stored longer than needed, and not shared with anyone else. Ever.</p></div>
+      </div>
+
+      <div class="faq-item reveal">
+        <button class="faq-q" onclick="toggleFaq(this)"><span class="faq-qt">What are the three questions?</span><span class="faq-ic">+</span></button>
+        <div class="faq-a"><p>They&#8217;re pulled at random each time you sign up as a Listener &#8212; different every time. Your answers go directly to your Maker and are not stored on our end.</p></div>
+      </div>
+
+      <div class="faq-item reveal">
+        <button class="faq-q" onclick="toggleFaq(this)"><span class="faq-qt">Can I choose cassette or CD?</span><span class="faq-ic">+</span></button>
+        <div class="faq-a"><p>Yes. When you sign up &#8212; whether as a Maker or a Listener &#8212; you&#8217;ll indicate your format preference. We&#8217;ll do our best to match accordingly.</p></div>
+      </div>
+
+      <div class="faq-item reveal">
+        <button class="faq-q" onclick="toggleFaq(this)"><span class="faq-qt">How long does it take to receive a tape?</span><span class="faq-ic">+</span></button>
+        <div class="faq-a"><p>It depends entirely on the Maker and standard postage time. Typically expect a few weeks. Part of the joy is not quite knowing when it&#8217;ll arrive.</p></div>
+      </div>
+
+      <div class="faq-item reveal">
+        <button class="faq-q" onclick="toggleFaq(this)"><span class="faq-qt">Can I participate more than once?</span><span class="faq-ic">+</span></button>
+        <div class="faq-a"><p>Absolutely. You can sign up as a Listener again after your current tape has been marked delivered. You choose your role each time &#8212; listen one round, make the next.</p></div>
+      </div>
+
+      <div class="faq-item reveal">
+        <button class="faq-q" onclick="toggleFaq(this)"><span class="faq-qt">What if I sign up as a Maker but never send anything?</span><span class="faq-ic">+</span></button>
+        <div class="faq-a"><p>Someone is counting on you. Please don&#8217;t sign up as a Maker unless you intend to follow through. A Listener has shared their address and answers in good faith.</p></div>
+      </div>
+
+      <div class="faq-item reveal">
+        <button class="faq-q" onclick="toggleFaq(this)"><span class="faq-qt">Will I ever find out who made my tape?</span><span class="faq-ic">+</span></button>
+        <div class="faq-a"><p>That&#8217;s up to the Maker. Some may leave a note inside. Some won&#8217;t. The mystery is part of the experience.</p></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section id="signup">
+  <div class="si">
+    <p class="slabel" style="justify-content:center;">Get Involved</p>
+    <h2 class="reveal">Ready to <em>participate?</em></h2>
+    <p class="lead reveal" style="margin:0 auto 3rem;">Pick your role. Every exchange is a first time.</p>
+    <div class="hero-ctas reveal">
+      <a href="#" class="btn btn-primary listener-trigger">I want to be a Listener</a>
+      <a href="#" class="btn btn-secondary">I want to be a Maker</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span>&#169; 2025 Secret Mixtape</span>
+  <span>Made with care &amp; blank tapes</span>
+  <span>Rewind. Repeat.</span>
+</footer>
+
+<!-- LISTENER MODAL -->
+<div id="modal">
+  <div class="mbox">
+    <button class="mclose" id="mclose">&#10005; close</button>
+    <span class="mlabel">Sign Up &#8212; Listener</span>
+    <h3 class="mtitle">Tell us where to send <em>it.</em></h3>
+    <p class="msub">A Maker will be matched with you. They&#8217;ll see your three answers &#8212; nothing more.</p>
+    <div class="ffields">
+      <div>
+        <label class="flabel" for="fname">Full Name</label>
+        <input class="finput" type="text" id="fname" placeholder="Your name" autocomplete="name" />
+      </div>
+      <div>
+        <label class="flabel" for="femail">Email</label>
+        <input class="finput" type="email" id="femail" placeholder="your@email.com" autocomplete="email" />
+      </div>
+      <div>
+        <label class="flabel" for="faddress">Mailing Address</label>
+        <textarea class="finput ftarea" id="faddress" rows="3" placeholder="Street, City, State, ZIP, Country"></textarea>
+      </div>
+      <div>
+        <span class="flabel">Format Preference</span>
+        <div class="rgroup">
+          <label class="rlabel"><input type="radio" name="fmt" value="cassette" /> Cassette</label>
+          <label class="rlabel"><input type="radio" name="fmt" value="cd" /> CD</label>
+          <label class="rlabel"><input type="radio" name="fmt" value="either" /> Either</label>
+        </div>
+      </div>
+    </div>
+    <div class="qsec">
+      <span class="qlabel">Your Three Questions</span>
+      <span class="qsub">Answer honestly. Your Maker will use these &#8212; and only these &#8212; to build your tape.</span>
+      <div id="qloading">Pulling your questions&#8230;</div>
+      <div id="qcontainer"></div>
+    </div>
+    <button class="bsubmit" id="bsubmit">Submit &#8212; I&#8217;m ready to listen</button>
+    <span id="fmsg"></span>
+  </div>
+</div>
+
+<script>
+  // NAV
+  var navEl = document.getElementById('nav');
+  window.addEventListener('scroll', function(){ navEl.classList.toggle('scrolled', window.scrollY > 60); });
+
+  // SMOOTH SCROLL — all hash links
+  document.querySelectorAll('a[href^="#"]').forEach(function(a){
+    var href = a.getAttribute('href');
+    if (href === '#' || a.classList.contains('listener-trigger') || a.classList.contains('drawer-link')) return;
+    a.addEventListener('click', function(e){
+      var target = document.querySelector(href);
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  });
+
+  // BURGER
+  var burger = document.getElementById('nav-burger');
+  var drawer = document.getElementById('nav-drawer');
+  function openDrawer() {
+    burger.classList.add('active');
+    drawer.classList.add('open');
+    burger.setAttribute('aria-expanded','true');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeDrawer() {
+    burger.classList.remove('active');
+    drawer.classList.remove('open');
+    burger.setAttribute('aria-expanded','false');
+    document.body.style.overflow = '';
+  }
+  burger.addEventListener('click', function(){
+    drawer.classList.contains('open') ? closeDrawer() : openDrawer();
+  });
+  document.querySelectorAll('.drawer-link').forEach(function(a){
+    a.addEventListener('click', function(e){
+      e.preventDefault();
+      var href = this.getAttribute('href');
+      closeDrawer();
+      setTimeout(function(){
+        var target = document.querySelector(href);
+        if (target) target.scrollIntoView({ behavior: 'smooth' });
+      }, 350);
+    });
+  });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape' && drawer.classList.contains('open')) closeDrawer(); });
+
+  // REVEAL
+  var revEls = document.querySelectorAll('.reveal');
+  var revObs = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('visible'); revObs.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  revEls.forEach(function(el){ revObs.observe(el); });
+
+  // FAQ
+  function toggleFaq(btn) {
+    var item = btn.closest('.faq-item');
+    var wasOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item.open').forEach(function(i){ i.classList.remove('open'); });
+    if (!wasOpen) item.classList.add('open');
+  }
+
+  // SHEET
+  var SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRgyx-E7yu8e4ze2vS47v_bZnrCa4liIxziwUW6j_UYKgdhhKm2bbjP_hr1URHM0dLGam8F-yqxPUxR/pub?gid=0&single=true&output=csv';
+
+  var FALLBACK = [
+    ['Mood',     'What does a perfect Sunday sound like?'],
+    ['Personal', 'What are you going through right now?'],
+    ['Wildcard', 'What song would you play at your funeral?'],
+    ['Mood',     'Describe your current emotional weather in three words.'],
+    ['Personal', 'What is a feeling you cannot quite name lately?'],
+    ['Wildcard', 'If your life had a theme song right now, what would it sound like?']
+  ];
+
+  function parseCSV(text) {
+    var lines = text.trim().split('\n').slice(1);
+    return lines.map(function(line){
+      var cols = [], cur = '', inQ = false;
+      for (var i = 0; i < line.length; i++) {
+        var ch = line[i];
+        if (ch === '"') { inQ = !inQ; }
+        else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+        else { cur += ch; }
+      }
+      cols.push(cur.trim());
+      return cols;
+    }).filter(function(r){ return r.length >= 2 && r[0] && r[1]; });
+  }
+
+  function pickOnePerCat(rows) {
+    var bycat = {};
+    rows.forEach(function(r){
+      var key = (r[0]||'').toLowerCase().trim();
+      if (!key || !r[1]) return;
+      if (!bycat[key]) bycat[key] = [];
+      bycat[key].push({ category: r[0].trim(), question: r[1].trim() });
+    });
+    var cats = Object.keys(bycat).sort(function(){ return Math.random()-0.5; });
+    var result = [];
+    for (var i = 0; i < cats.length && result.length < 3; i++) {
+      var pool = bycat[cats[i]];
+      result.push(pool[Math.floor(Math.random()*pool.length)]);
+    }
+    return result;
+  }
+
+  function renderQuestions(qs) {
+    var container = document.getElementById('qcontainer');
+    var loading   = document.getElementById('qloading');
+    container.innerHTML = '';
+    qs.forEach(function(q, i){
+      var wrap  = document.createElement('div');
+      var num   = document.createElement('span');
+      num.className = 'qnum';
+      num.textContent = 'Question ' + (i+1);
+      var text  = document.createElement('span');
+      text.className = 'qtext';
+      text.textContent = q.question;
+      var ta    = document.createElement('textarea');
+      ta.className = 'finput ftarea';
+      ta.id = 'qa' + i;
+      ta.rows = 3;
+      ta.placeholder = 'Your answer\u2026';
+      wrap.appendChild(num);
+      wrap.appendChild(text);
+      wrap.appendChild(ta);
+      container.appendChild(wrap);
+    });
+    loading.style.display = 'none';
+    container.style.display = 'flex';
+    container.style.flexDirection = 'column';
+    container.style.gap = '1.8rem';
+  }
+
+  function loadQuestions() {
+    fetch(SHEET_URL)
+      .then(function(r){ if(!r.ok) throw new Error('fail'); return r.text(); })
+      .then(function(text){
+        var rows = parseCSV(text);
+        var picked = pickOnePerCat(rows);
+        if (!picked.length) throw new Error('empty');
+        renderQuestions(picked);
+      })
+      .catch(function(){
+        renderQuestions(pickOnePerCat(FALLBACK.map(function(r){ return { category:r[0], question:r[1] }; })));
+      });
+  }
+
+  // MODAL
+  var modal = document.getElementById('modal');
+
+  function openModal(e) {
+    if (e) e.preventDefault();
+    document.getElementById('fname').value = '';
+    document.getElementById('femail').value = '';
+    document.getElementById('faddress').value = '';
+    document.querySelectorAll('input[name="fmt"]').forEach(function(r){ r.checked = false; });
+    document.getElementById('qloading').style.display = 'block';
+    document.getElementById('qcontainer').innerHTML = '';
+    document.getElementById('qcontainer').style.display = 'none';
+    var msg = document.getElementById('fmsg');
+    msg.textContent = '';
+    msg.className = '';
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    loadQuestions();
+  }
+
+  function closeModal() {
+    modal.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  document.querySelectorAll('.listener-trigger').forEach(function(btn){
+    btn.addEventListener('click', openModal);
+  });
+  document.getElementById('mclose').addEventListener('click', closeModal);
+  modal.addEventListener('click', function(e){ if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeModal(); });
+
+  // SUBMIT
+  document.getElementById('bsubmit').addEventListener('click', function(){
+    var name    = document.getElementById('fname').value.trim();
+    var email   = document.getElementById('femail').value.trim();
+    var address = document.getElementById('faddress').value.trim();
+    var fmt     = document.querySelector('input[name="fmt"]:checked');
+    var msg     = document.getElementById('fmsg');
+    if (!name || !email || !address || !fmt) {
+      msg.className = 'err';
+      msg.textContent = 'Please fill in all fields and choose a format.';
+      return;
+    }
+    msg.className = '';
+    msg.textContent = "You're on the list. A Maker will find you soon.";
+  });
+</script>
+</body>
+</html>
