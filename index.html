@@ -637,15 +637,14 @@
     })
   })
   .then(function(res){
-    if (!res.ok) throw new Error('Network error');
     msg.className = '';
     msg.textContent = "You're on the list. A Maker will find you soon.";
     setTimeout(closeModal, 2000);
   })
   .catch(function(err){
+    console.error('Fetch error:', err);
     msg.className = 'err';
     msg.textContent = 'Something went wrong. Try again or email us.';
-    console.error(err);
   });
 });
 </script>
