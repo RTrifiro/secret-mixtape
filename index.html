@@ -603,19 +603,51 @@
 
   // SUBMIT
   document.getElementById('bsubmit').addEventListener('click', function(){
-    var name    = document.getElementById('fname').value.trim();
-    var email   = document.getElementById('femail').value.trim();
-    var address = document.getElementById('faddress').value.trim();
-    var fmt     = document.querySelector('input[name="fmt"]:checked');
-    var msg     = document.getElementById('fmsg');
-    if (!name || !email || !address || !fmt) {
-      msg.className = 'err';
-      msg.textContent = 'Please fill in all fields and choose a format.';
-      return;
-    }
+  var name    = document.getElementById('fname').value.trim();
+  var email   = document.getElementById('femail').value.trim();
+  var address = document.getElementById('faddress').value.trim();
+  var fmt     = document.querySelector('input[name="fmt"]:checked');
+  var msg     = document.getElementById('fmsg');
+  
+  if (!name || !email || !address || !fmt) {
+    msg.className = 'err';
+    msg.textContent = 'Please fill in all fields and choose a format.';
+    return;
+  }
+
+  var answers = [];
+  document.querySelectorAll('#qcontainer > div').forEach(function(wrap, i){
+    var ta = wrap.querySelector('textarea');
+    var qtext = wrap.querySelector('.qtext').textContent;
+    answers.push({
+      question_text: qtext,
+      answer: ta.value.trim()
+    });
+  });
+
+  fetch('https://hooks.zapier.com/hooks/catch/12418340/unzskqv/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: name,
+      email: email,
+      address: address,
+      format_preference: fmt.value,
+      answers: answers
+    })
+  })
+  .then(function(res){
+    if (!res.ok) throw new Error('Network error');
     msg.className = '';
     msg.textContent = "You're on the list. A Maker will find you soon.";
+    setTimeout(closeModal, 2000);
+  })
+  .catch(function(err){
+    msg.className = 'err';
+    msg.textContent = 'Something went wrong. Try again or email us.';
+    console.error(err);
   });
+});
 </script>
 </body>
 </html>
