@@ -601,7 +601,15 @@
   modal.addEventListener('click', function(e){ if (e.target === modal) closeModal(); });
   document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeModal(); });
 
-// SUBMIT — temporarily paused while the real backend is wired up
+// MAKER BUTTON — temporary hold until the Maker sign-up form is built
+  document.querySelectorAll('.btn-secondary').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.preventDefault();
+      alert("Maker sign-ups aren't open yet — check back soon!");
+    });
+  });
+  
+  // SUBMIT — temporarily paused while the real backend is wired up
   document.getElementById('bsubmit').addEventListener('click', function(){
     var name    = document.getElementById('fname').value.trim();
     var email   = document.getElementById('femail').value.trim();
