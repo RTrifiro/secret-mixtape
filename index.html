@@ -153,7 +153,7 @@
     .reveal.visible { opacity:1; transform:none; }
 
     /* MODAL */
-    #modal {
+    .modal-overlay {
       position:fixed; inset:0; z-index:500;
       background:rgba(5,4,3,0.93);
       backdrop-filter:blur(6px);
@@ -162,14 +162,14 @@
       visibility:hidden; opacity:0;
       transition:opacity 0.3s ease, visibility 0.3s ease;
     }
-    #modal.open { visibility:visible; opacity:1; }
+    .modal-overlay.open { visibility:visible; opacity:1; }
     .mbox {
       background:var(--bg2); border:1px solid var(--border-b);
       max-width:580px; width:100%; margin:auto;
       padding:3rem 2.5rem; position:relative;
       transform:translateY(20px); transition:transform 0.3s ease;
     }
-    #modal.open .mbox { transform:translateY(0); }
+    .modal-overlay.open .mbox { transform:translateY(0); }
     .mclose { position:absolute; top:1.2rem; right:1.5rem; background:none; border:none; color:var(--tan); font-family:'DM Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; cursor:pointer; opacity:0.6; transition:opacity 0.2s; }
     .mclose:hover { opacity:1; }
     .mlabel { font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:0.25em; text-transform:uppercase; color:var(--rust); margin-bottom:1rem; display:block; }
@@ -234,7 +234,7 @@
   <p class="hero-sub">Real tapes. Real strangers. No algorithms. Just music, chosen for you by someone who doesn't know you yet.</p>
   <div class="hero-ctas">
     <a href="#" class="btn btn-primary listener-trigger">I want to be a Listener</a>
-    <a href="#" class="btn btn-secondary">I want to be a Producer</a>
+    <a href="#" class="btn btn-secondary producer-trigger">I want to be a Producer</a>
   </div>
   <div class="hero-tape-line"></div>
 </section>
@@ -369,7 +369,7 @@
     <p class="lead reveal" style="margin:0 auto 3rem;">Pick your role. Every exchange is a first time.</p>
     <div class="hero-ctas reveal">
       <a href="#" class="btn btn-primary listener-trigger">I want to be a Listener</a>
-      <a href="#" class="btn btn-secondary">I want to be a Producer</a>
+      <a href="#" class="btn btn-secondary producer-trigger">I want to be a Producer</a>
     </div>
   </div>
 </section>
@@ -381,7 +381,7 @@
 </footer>
 
 <!-- LISTENER MODAL -->
-<div id="modal">
+<div id="modal" class="modal-overlay">
   <div class="mbox">
     <button class="mclose" id="mclose">&#10005; close</button>
     <span class="mlabel">Sign Up &#8212; Listener</span>
@@ -417,6 +417,48 @@
     </div>
     <button class="bsubmit" id="bsubmit">Submit &#8212; I&#8217;m ready to listen</button>
     <span id="fmsg"></span>
+  </div>
+</div>
+
+<!-- PRODUCER MODAL -->
+<div id="producer-modal" class="modal-overlay">
+  <div class="mbox">
+    <button class="mclose" id="pmclose">&#10005; close</button>
+    <span class="mlabel">Sign Up &#8212; Producer</span>
+    <h3 class="mtitle">Make someone a <em>tape.</em></h3>
+    <p class="msub">You&#8217;ll be matched with a Listener and see only their three answers &#8212; that&#8217;s your brief.</p>
+    <div class="ffields">
+      <div>
+        <label class="flabel" for="pname">Full Name</label>
+        <input class="finput" type="text" id="pname" placeholder="Your name" autocomplete="name" />
+      </div>
+      <div>
+        <label class="flabel" for="pemail">Email</label>
+        <input class="finput" type="email" id="pemail" placeholder="your@email.com" autocomplete="email" />
+      </div>
+      <div>
+        <span class="flabel">Format Preference</span>
+        <div class="rgroup">
+          <label class="rlabel"><input type="radio" name="pfmt" value="Cassette" /> Cassette</label>
+          <label class="rlabel"><input type="radio" name="pfmt" value="CD" /> CD</label>
+          <label class="rlabel"><input type="radio" name="pfmt" value="Either" /> Either</label>
+        </div>
+      </div>
+      <div>
+        <span class="flabel">Experience Level</span>
+        <div class="rgroup">
+          <label class="rlabel"><input type="radio" name="pexp" value="First Time" /> First Time</label>
+          <label class="rlabel"><input type="radio" name="pexp" value="Made a Few" /> Made a Few</label>
+          <label class="rlabel"><input type="radio" name="pexp" value="Mixtape Veteran" /> Mixtape Veteran</label>
+        </div>
+      </div>
+      <div>
+        <label class="flabel" for="pbio">A Little About You <span style="text-transform:none; letter-spacing:normal;">(optional)</span></label>
+        <textarea class="finput ftarea" id="pbio" rows="3" placeholder="Musical taste, what you love making tapes about, anything a Listener might like to know&#8230;"></textarea>
+      </div>
+    </div>
+    <button class="bsubmit" id="pbsubmit">Submit &#8212; I&#8217;m ready to make one</button>
+    <span id="pmsg"></span>
   </div>
 </div>
 
@@ -603,14 +645,40 @@
   });
   document.getElementById('mclose').addEventListener('click', closeModal);
   modal.addEventListener('click', function(e){ if (e.target === modal) closeModal(); });
-  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeModal(); });
 
-// PRODUCER BUTTON — temporary hold until the Producer sign-up form is built
-  document.querySelectorAll('.btn-secondary').forEach(function(btn){
-    btn.addEventListener('click', function(e){
-      e.preventDefault();
-      alert("Producer sign-ups aren't open yet — check back soon!");
-    });
+  // PRODUCER MODAL
+  var producerModal = document.getElementById('producer-modal');
+
+  function openProducerModal(e) {
+    if (e) e.preventDefault();
+    document.getElementById('pname').value = '';
+    document.getElementById('pemail').value = '';
+    document.getElementById('pbio').value = '';
+    document.querySelectorAll('input[name="pfmt"]').forEach(function(r){ r.checked = false; });
+    document.querySelectorAll('input[name="pexp"]').forEach(function(r){ r.checked = false; });
+    var pmsg = document.getElementById('pmsg');
+    pmsg.textContent = '';
+    pmsg.className = '';
+    var pbtn = document.getElementById('pbsubmit');
+    pbtn.disabled = false;
+    pbtn.style.display = '';
+    producerModal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeProducerModal() {
+    producerModal.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  document.querySelectorAll('.producer-trigger').forEach(function(btn){
+    btn.addEventListener('click', openProducerModal);
+  });
+  document.getElementById('pmclose').addEventListener('click', closeProducerModal);
+  producerModal.addEventListener('click', function(e){ if (e.target === producerModal) closeProducerModal(); });
+
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') { closeModal(); closeProducerModal(); }
   });
   
   // SUBMIT — sends the signup to the real backend
@@ -675,6 +743,66 @@
         submitBtn.disabled = false;
         msg.className = 'err';
         msg.textContent = 'Could not reach the server. Please check your connection and try again.';
+      });
+  });
+
+  // PRODUCER SUBMIT — sends the signup to the real backend
+  var PRODUCER_API_URL = 'https://secret-mixtape.vercel.app/api/producer-signup';
+
+  document.getElementById('pbsubmit').addEventListener('click', function(){
+    var name   = document.getElementById('pname').value.trim();
+    var email  = document.getElementById('pemail').value.trim();
+    var bio    = document.getElementById('pbio').value.trim();
+    var fmt    = document.querySelector('input[name="pfmt"]:checked');
+    var exp    = document.querySelector('input[name="pexp"]:checked');
+    var pmsg   = document.getElementById('pmsg');
+    var pbtn   = document.getElementById('pbsubmit');
+
+    if (!name || !email || !fmt) {
+      pmsg.className = 'err';
+      pmsg.textContent = 'Please fill in your name, email, and choose a format.';
+      return;
+    }
+
+    var payload = {
+      name: name,
+      email: email,
+      format_preference: fmt.value,
+      bio: bio,
+      experience_level: exp ? exp.value : ''
+    };
+
+    pmsg.className = '';
+    pmsg.textContent = 'Sending\u2026';
+    pbtn.disabled = true;
+
+    fetch(PRODUCER_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+      .then(function(r){
+        return r.json().then(function(data){ return { ok: r.ok, status: r.status, data: data }; });
+      })
+      .then(function(result){
+        pbtn.disabled = false;
+        if (!result.ok) {
+          pmsg.className = 'err';
+          if (result.status === 409) {
+            pmsg.textContent = 'That email has already signed up.';
+          } else {
+            pmsg.textContent = 'Something went wrong. Please try again in a moment.';
+          }
+          return;
+        }
+        pmsg.className = '';
+        pmsg.textContent = "You're signed up! We'll match you with a Listener soon.";
+        pbtn.style.display = 'none';
+      })
+      .catch(function(){
+        pbtn.disabled = false;
+        pmsg.className = 'err';
+        pmsg.textContent = 'Could not reach the server. Please check your connection and try again.';
       });
   });
 </script>
