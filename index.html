@@ -193,6 +193,7 @@
     .qtext { font-family:'Playfair Display',serif; font-style:italic; font-size:1.1rem; color:var(--cream); margin-bottom:0.6rem; display:block; }
     .bsubmit { width:100%; background:var(--rust); border:1px solid var(--rust); color:var(--cream); font-family:'DM Mono',monospace; font-size:0.72rem; letter-spacing:0.18em; text-transform:uppercase; padding:1rem; cursor:pointer; transition:background 0.25s,color 0.25s; }
     .bsubmit:hover { background:transparent; color:var(--rust); }
+    .bsubmit:disabled { opacity:0.5; cursor:not-allowed; }
     #fmsg { margin-top:1rem; font-style:italic; font-size:0.9rem; text-align:center; color:var(--tan); min-height:1.4rem; display:block; }
     #fmsg.err { color:var(--rust); }
   </style>
@@ -527,7 +528,10 @@
     return result;
   }
 
+  var currentQuestions = [];
+
   function renderQuestions(qs) {
+    currentQuestions = qs;
     var container = document.getElementById('qcontainer');
     var loading   = document.getElementById('qloading');
     container.innerHTML = '';
@@ -609,13 +613,17 @@
     });
   });
   
-  // SUBMIT — temporarily paused while the real backend is wired up
+  // SUBMIT — sends the signup to the real backend
+  var LISTENER_API_URL = 'https://secret-mixtape.vercel.app/api/listener-signup';
+  var FORMAT_LABELS = { cassette: 'Cassette', cd: 'CD', either: 'Either' };
+
   document.getElementById('bsubmit').addEventListener('click', function(){
     var name    = document.getElementById('fname').value.trim();
     var email   = document.getElementById('femail').value.trim();
     var address = document.getElementById('faddress').value.trim();
     var fmt     = document.querySelector('input[name="fmt"]:checked');
     var msg     = document.getElementById('fmsg');
+    var submitBtn = document.getElementById('bsubmit');
 
     if (!name || !email || !address || !fmt) {
       msg.className = 'err';
@@ -623,8 +631,51 @@
       return;
     }
 
+    var payload = {
+      name: name,
+      email: email,
+      mailing_address: address,
+      format_preference: FORMAT_LABELS[fmt.value] || fmt.value
+    };
+
+    currentQuestions.forEach(function(q, i){
+      var ta = document.getElementById('qa' + i);
+      payload['answer_' + (i+1) + '_question'] = q.question;
+      payload['answer_' + (i+1) + '_text'] = ta ? ta.value.trim() : '';
+    });
+
     msg.className = '';
-    msg.textContent = "We're finishing setup behind the scenes — sign-ups open again soon. Check back shortly.";
+    msg.textContent = 'Sending\u2026';
+    submitBtn.disabled = true;
+
+    fetch(LISTENER_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+      .then(function(r){
+        return r.json().then(function(data){ return { ok: r.ok, status: r.status, data: data }; });
+      })
+      .then(function(result){
+        submitBtn.disabled = false;
+        if (!result.ok) {
+          msg.className = 'err';
+          if (result.status === 409) {
+            msg.textContent = 'That email has already signed up.';
+          } else {
+            msg.textContent = 'Something went wrong. Please try again in a moment.';
+          }
+          return;
+        }
+        msg.className = '';
+        msg.textContent = "You're signed up! A Producer will be matched with you soon.";
+        submitBtn.style.display = 'none';
+      })
+      .catch(function(){
+        submitBtn.disabled = false;
+        msg.className = 'err';
+        msg.textContent = 'Could not reach the server. Please check your connection and try again.';
+      });
   });
 </script>
 </body>
