@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Secret Mixtape — Confirm Delivery</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Mono:ital,wght@0,300;0,400;1,300&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:       #0a0806;
+      --bg2:      #100e0b;
+      --cream:    #e8e0d0;
+      --tan:      #c4b49a;
+      --rust:     #c4622d;
+      --gold:     #c9a84c;
+      --border:   rgba(196,180,154,0.15);
+      --border-b: rgba(196,180,154,0.35);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg); color: var(--cream);
+      font-family: 'Cormorant Garamond', Georgia, serif; font-size: 18px; line-height: 1.7;
+      min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 2rem;
+    }
+    .box {
+      background: var(--bg2); border: 1px solid var(--border-b);
+      max-width: 480px; width: 100%; padding: 3rem 2.5rem; text-align: center;
+    }
+    .label { font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:0.25em; text-transform:uppercase; color:var(--rust); margin-bottom:1rem; display:block; }
+    h1 { font-family:'Playfair Display',serif; font-size:2rem; font-weight:700; line-height:1.2; margin-bottom:0.5rem; }
+    h1 em { font-style:italic; color:var(--gold); }
+    .sub { color:var(--tan); font-style:italic; font-size:1rem; margin-bottom:2rem; }
+    .bsubmit { width:100%; background:var(--rust); border:1px solid var(--rust); color:var(--cream); font-family:'DM Mono',monospace; font-size:0.72rem; letter-spacing:0.18em; text-transform:uppercase; padding:1rem; cursor:pointer; transition:background 0.25s,color 0.25s; }
+    .bsubmit:hover { background:transparent; color:var(--rust); }
+    .bsubmit:disabled { opacity:0.5; cursor:default; }
+    #msg { margin-top:1.2rem; font-style:italic; font-size:0.95rem; text-align:center; color:var(--tan); min-height:1.4rem; display:block; }
+    #msg.err { color:var(--rust); }
+    #msg.ok { color:var(--gold); }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <span class="label">Listener &#8212; Confirm Delivery</span>
+    <h1>Did your <em>tape</em><br/>arrive?</h1>
+    <p class="sub">Let your Producer know it made it safely into your hands.</p>
+
+    <button class="bsubmit" id="bsubmit">Confirm &#8212; I received it</button>
+    <span id="msg"></span>
+  </div>
+
+  <script>
+    // NOTE: swap this for your real Vercel web address once it's live
+    var API_BASE = 'https://REPLACE-WITH-YOUR-VERCEL-ADDRESS.vercel.app';
+
+    function getRecordId() {
+      var params = new URLSearchParams(window.location.search);
+      return params.get('id');
+    }
+
+    document.getElementById('bsubmit').addEventListener('click', function () {
+      var msg = document.getElementById('msg');
+      var btn = document.getElementById('bsubmit');
+      var recordId = getRecordId();
+
+      if (!recordId) {
+        msg.className = 'err';
+        msg.textContent = 'This link is missing some information. Please use the link from your email.';
+        return;
+      }
+
+      btn.disabled = true;
+      msg.className = '';
+      msg.textContent = 'Sending...';
+
+      fetch(API_BASE + '/api/mark-received', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ record_id: recordId })
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (data.success) {
+            msg.className = 'ok';
+            msg.textContent = 'Thanks for letting us know! Enjoy the tape.';
+          } else {
+            btn.disabled = false;
+            msg.className = 'err';
+            msg.textContent = 'Something went wrong. Please try again.';
+          }
+        })
+        .catch(function () {
+          btn.disabled = false;
+          msg.className = 'err';
+          msg.textContent = 'Something went wrong. Please try again.';
+        });
+    });
+  </script>
+</body>
+</html>
