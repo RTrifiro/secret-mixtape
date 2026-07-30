@@ -63,7 +63,6 @@ export default async function handler(req, res) {
           answer_2_text,
           answer_3_question,
           answer_3_text,
-          signup_date: new Date().toISOString(),
           status: 'Unmatched'
         }
       })
