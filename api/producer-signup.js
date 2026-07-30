@@ -53,7 +53,6 @@ export default async function handler(req, res) {
           format_preference,
           bio,
           experience_level,
-          signup_date: new Date().toISOString(),
           status: 'Available'
         }
       })
