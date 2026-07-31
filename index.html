@@ -526,40 +526,25 @@
     if (!wasOpen) item.classList.add('open');
   }
 
-  // SHEET
-  var SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRgyx-E7yu8e4ze2vS47v_bZnrCa4liIxziwUW6j_UYKgdhhKm2bbjP_hr1URHM0dLGam8F-yqxPUxR/pub?gid=0&single=true&output=csv';
+  // QUESTIONS
+  var QUESTIONS_API_URL = 'https://secret-mixtape.vercel.app/api/get-questions';
 
   var FALLBACK = [
-    ['Mood',     'What does a perfect Sunday sound like?'],
-    ['Personal', 'What are you going through right now?'],
-    ['Wildcard', 'What song would you play at your funeral?'],
-    ['Mood',     'Describe your current emotional weather in three words.'],
-    ['Personal', 'What is a feeling you cannot quite name lately?'],
-    ['Wildcard', 'If your life had a theme song right now, what would it sound like?']
+    { category: 'Mood & Energy',      question: 'What does a perfect Sunday sound like?' },
+    { category: 'Slightly Personal',  question: 'What are you going through right now?' },
+    { category: 'Wildcards',          question: 'What song would you play at your funeral?' },
+    { category: 'Mood & Energy',      question: 'Describe your current emotional weather in three words.' },
+    { category: 'Slightly Personal',  question: 'What is a feeling you cannot quite name lately?' },
+    { category: 'Wildcards',          question: 'If your life had a theme song right now, what would it sound like?' }
   ];
 
-  function parseCSV(text) {
-    var lines = text.trim().split('\n').slice(1);
-    return lines.map(function(line){
-      var cols = [], cur = '', inQ = false;
-      for (var i = 0; i < line.length; i++) {
-        var ch = line[i];
-        if (ch === '"') { inQ = !inQ; }
-        else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
-        else { cur += ch; }
-      }
-      cols.push(cur.trim());
-      return cols;
-    }).filter(function(r){ return r.length >= 2 && r[0] && r[1]; });
-  }
-
-  function pickOnePerCat(rows) {
+  function pickOnePerCat(items) {
     var bycat = {};
-    rows.forEach(function(r){
-      var key = (r[0]||'').toLowerCase().trim();
-      if (!key || !r[1]) return;
+    items.forEach(function(item){
+      var key = (item.category||'').toLowerCase().trim();
+      if (!key || !item.question) return;
       if (!bycat[key]) bycat[key] = [];
-      bycat[key].push({ category: r[0].trim(), question: r[1].trim() });
+      bycat[key].push({ category: item.category.trim(), question: item.question.trim() });
     });
     var cats = Object.keys(bycat).sort(function(){ return Math.random()-0.5; });
     var result = [];
@@ -602,16 +587,15 @@
   }
 
   function loadQuestions() {
-    fetch(SHEET_URL)
-      .then(function(r){ if(!r.ok) throw new Error('fail'); return r.text(); })
-      .then(function(text){
-        var rows = parseCSV(text);
-        var picked = pickOnePerCat(rows);
+    fetch(QUESTIONS_API_URL)
+      .then(function(r){ if(!r.ok) throw new Error('fail'); return r.json(); })
+      .then(function(data){
+        var picked = pickOnePerCat(data.questions || []);
         if (!picked.length) throw new Error('empty');
         renderQuestions(picked);
       })
       .catch(function(){
-        renderQuestions(pickOnePerCat(FALLBACK.map(function(r){ return { category:r[0], question:r[1] }; })));
+        renderQuestions(pickOnePerCat(FALLBACK));
       });
   }
 
